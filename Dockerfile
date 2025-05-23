@@ -18,6 +18,21 @@ COPY requirements.txt /app/
 # ===== 4. Zainstaluj wymagane biblioteki =====
 RUN pip3 install --no-cache --break-system-packages -r requirements.txt
 
+
+RUN python3 -c 'from transformers import AutoTokenizer, AutoModel; \
+AutoTokenizer.from_pretrained("Ewel/FacebookAI_xlm_roberta_base"); \
+AutoModel.from_pretrained("Ewel/FacebookAI_xlm_roberta_base")'
+
+RUN python3 -c 'from transformers import AutoModel; \
+AutoModel.from_pretrained("Ewel/modeltrained_on_contrastive_encoder_10_epoch_quote_easy_freeze_0")'
+
+RUN python3 -c 'from transformers import AutoModel; \
+AutoModel.from_pretrained("Ewel/model_trained_on_contrastive_encoder_10_epoch_question_freeze_0")'
+
+RUN python3 -c 'from transformers import AutoModel; \
+AutoModel.from_pretrained("Ewel/model_trained_on_contrastive_encoder_10_epoch_question_medium_freeze_2")'
+
+
 COPY MySoft.py /app/
 
 # ===== 6. ENTRYPOINT =====
