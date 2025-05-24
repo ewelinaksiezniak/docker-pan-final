@@ -36,4 +36,4 @@ AutoModel.from_pretrained("Ewel/model_trained_on_contrastive_encoder_10_epoch_qu
 COPY MySoft.py /app/
 
 # ===== 6. ENTRYPOINT =====
-ENTRYPOINT ["python", "MySoft.py"]
+ENTRYPOINT ["python3", "MySoft.py"]
