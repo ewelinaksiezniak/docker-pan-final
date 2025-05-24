@@ -10,10 +10,6 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 from transformers import AutoTokenizer, AutoModel
 
-# ===== Ścieżki lokalne =====
-def local_model_path(model_folder_name):
-    return os.path.join("models", model_folder_name)
-
 # ===== Model =====
 class ClassificationModel(nn.Module):
     def __init__(self, base_model_name="FacebookAI/xlm-roberta-base", hidden_size=768):
@@ -29,7 +25,7 @@ class ClassificationModel(nn.Module):
             loss = nn.functional.cross_entropy(logits, labels)
         return {"loss": loss, "logits": logits}
 
-    def load_weights(self, model_dir, device="cpu"):
+    def load_weights(self, model_dir, device):
         safe_path = os.path.join(model_dir, "model.safetensors")
         bin_path = os.path.join(model_dir, "pytorch_model.bin")
 
@@ -104,13 +100,12 @@ def predict_pairs(model, dataset, device):
 def main(args):
 
     model_dirs = {
-        'easy':   "modeltrained_on_contrastive_encoder_10_epoch_quote_easy_freeze_0",
-        'medium': "model_trained_on_contrastive_encoder_10_epoch_question_medium_freeze_2",
-        'hard':   "model_trained_on_contrastive_encoder_10_epoch_question_freeze_0"
+        'easy':   "/root/.cache/huggingface/hub/models--Ewel--modeltrained_on_contrastive_encoder_10_epoch_quote_easy_freeze_0/snapshots/14bc749cb46c78ef096b46767cbc49ff0df5d03c",
+        'medium': "/root/.cache/huggingface/hub/models--Ewel--model_trained_on_contrastive_encoder_10_epoch_question_medium_freeze_2/snapshots/82a87a9f1bbb17ee32833ae729502cd3c232e461",
+        'hard':   "/root/.cache/huggingface/hub/models--Ewel--model_trained_on_contrastive_encoder_10_epoch_question_freeze_0/snapshots/07975659942d4a641854bb721123f06ca1ae27c2"
     }
 
-    # base_model_name = "FacebookAI/xlm-roberta-base"
-    base_model_name = "/app/models/FacebookAI_xlm_roberta_base"
+    base_model_name = "FacebookAI/xlm-roberta-base"
 
     tokenizer = AutoTokenizer.from_pretrained(base_model_name, local_files_only=True)
     if tokenizer.pad_token is None:
@@ -124,9 +119,8 @@ def main(args):
         files_list = glob.glob(f'{input_dir}/**/*.txt', recursive=True)
         print(f'[{difficulty}] Znaleziono {len(files_list)} plików.')
 
-        model_dir = local_model_path(model_dirs[difficulty])
         model = ClassificationModel(base_model_name=base_model_name)
-        model.load_weights(model_dir, device=args.device)
+        model.load_weights(model_dirs[difficulty], device=args.device)
         model.to(args.device)
 
         for file_path in tqdm(files_list):
@@ -151,9 +145,10 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--input", default="../pan24_dataset/test", type=str)
     parser.add_argument("-o", "--output", default="../pan24_dataset/test", type=str)
     parser.add_argument("--batch_size", default=16, type=int)
-    parser.add_argument("--device", default="cuda:0", type=str)
+    parser.add_argument("--device", default="cuda", type=str)
     parser.add_argument("-e", "--enrich", action='store_true')
     args = parser.parse_args()
     args.device = args.device if torch.cuda.is_available() else "cpu"
+    print(f"use device {args.device}")
 
     main(args)
